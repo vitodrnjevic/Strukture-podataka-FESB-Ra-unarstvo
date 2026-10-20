@@ -1,0 +1,117 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+typedef struct _Person{
+    char ime[50];
+    char prezime[50];
+    int godina;
+    struct _Person*next;
+}Person;
+Person* makePerson(const char* ime, const char* prezime, int godina){
+    Person *new=(Person*)malloc(sizeof(Person));
+    if(!new){
+        printf("Greska pri alokaciji memorije");
+        return NULL;
+    }
+    strcpy(new->ime,ime);
+    strcpy(new->prezime,prezime);
+    new->godina=godina;
+    new->next=NULL;
+    return new;
+}
+int start(Person* head,const char* ime, const char* prezime, int godina){
+    Person* new=makePerson(ime,prezime,godina);
+    if(!new)return 1;
+    new->next=head->next;
+    head->next=new;
+    return 0;
+}
+int print(Person* head){
+    Person* temp=head->next;
+    if(temp==NULL){
+        printf("Lista je prazna\n");
+        return 0;
+
+    }
+    printf("\n%-20s %-20s %-20s\n", "IME", "PREZIME", "GODINA RODENJA");
+    printf("---------------------------------------------\n");
+    while(temp!=NULL){
+        printf("%-20s %-20s %-20d\n", temp->ime,temp->prezime,temp->godina);
+        temp=temp->next;
+    }
+    printf("\n");
+    return 0;
+}
+int addToEnd(Person* head, const char* ime, const char* prezime, int godina){
+    Person* new=makePerson(ime,prezime,godina);
+    if(!new)return 1;
+    Person* temp=head;
+    while(temp->next!=NULL){
+        temp=temp->next;
+    }
+    temp->next=new;
+    return 0;
+}
+Person* findBySurname(Person* head,const char* prezime){
+    Person*temp=head->next;
+    while(temp!=NULL){
+        if(strcmp(temp->prezime,prezime)==0){
+            return temp;
+        }
+        temp=temp->next;
+    }
+
+    return NULL;
+}
+int deleteElement(Person* head, const char* prezime){
+    Person*temp=head;
+    while(temp->next!=NULL&&strcmp(temp->next->prezime,prezime)!=0){
+        temp=temp->next;
+    }
+    if(temp->next==NULL){
+        printf("Osoba s prezimenom %s nije pronadena za brisanje\n",prezime);
+        return 1;
+    }
+    Person* forDeleting= temp->next;
+    temp->next=forDeleting->next;
+    free(forDeleting);
+    printf("Osoba s prezimenom %s je uspjesno obrisana.\n",prezime);
+    return 0;
+
+}
+int freeList(Person* head){
+    Person* temp=head->next;
+    while(temp!=NULL){
+        Person* next=temp->next;
+        free(temp);
+        temp=next;
+    }
+    head->next=NULL;
+    return 0;
+}
+int main(){
+    Person head={
+        .ime="",
+        .prezime="",
+        .godina=0,
+        .next=NULL
+    };
+    start(&head,"Ivo","Ivic",2000);
+    start(&head,"Ana","Anicic",2002);
+    addToEnd(&head,"Marko","Markic",2004);
+    print(&head);
+    printf("Trazimo sada prezime Anicic:\n");
+    Person* naden=findBySurname(&head,"Anicic");
+    if(naden){
+        printf("Pronaden: %s %s (%d)\n",naden->ime,naden->prezime,naden->godina);
+    }else{
+        printf("Osoba nije pronadena\n");
+    }
+    deleteElement(&head,"Anicic");
+    print(&head);
+    freeList(&head);
+    return 0;
+}
+
+
+
