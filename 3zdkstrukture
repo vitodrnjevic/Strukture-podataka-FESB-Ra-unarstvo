@@ -1,0 +1,233 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+typedef struct _Person{
+    char ime[50];
+    char prezime[50];
+    int godina;
+    struct _Person*next;
+}Person;
+Person* makePerson(const char* ime, const char* prezime, int godina){
+    Person *new=(Person*)malloc(sizeof(Person));
+    if(!new){
+        printf("Greska pri alokaciji memorije");
+        return NULL;
+    }
+    strcpy(new->ime,ime);
+    strcpy(new->prezime,prezime);
+    new->godina=godina;
+    new->next=NULL;
+    return new;
+}
+int start(Person* head,const char* ime, const char* prezime, int godina){
+    Person* new=makePerson(ime,prezime,godina);
+    if(!new)return 1;
+    new->next=head->next;
+    head->next=new;
+    return 0;
+}
+int print(Person* head){
+    Person* temp=head->next;
+    if(temp==NULL){
+        printf("Lista je prazna\n");
+        return 0;
+
+    }
+    printf("\n%-20s %-20s %-20s\n", "IME", "PREZIME", "GODINA RODENJA");
+    printf("---------------------------------------------\n");
+    while(temp!=NULL){
+        printf("%-20s %-20s %-20d\n", temp->ime,temp->prezime,temp->godina);
+        temp=temp->next;
+    }
+    printf("\n");
+    return 0;
+}
+int addToEnd(Person* head, const char* ime, const char* prezime, int godina){
+    Person* new=makePerson(ime,prezime,godina);
+    if(!new)return 1;
+    Person* temp=head;
+    while(temp->next!=NULL){
+        temp=temp->next;
+    }
+    temp->next=new;
+    return 0;
+}
+Person* findBySurname(Person* head,const char* prezime){
+    Person*temp=head->next;
+    while(temp!=NULL){
+        if(strcmp(temp->prezime,prezime)==0){
+            return temp;
+        }
+        temp=temp->next;
+    }
+
+    return NULL;
+}
+int deleteElement(Person* head, const char* prezime){
+    Person*temp=head;
+    while(temp->next!=NULL&&strcmp(temp->next->prezime,prezime)!=0){
+        temp=temp->next;
+    }
+    if(temp->next==NULL){
+        printf("Osoba s prezimenom %s nije pronadena za brisanje\n",prezime);
+        return 1;
+    }
+    Person* forDeleting= temp->next;
+    temp->next=forDeleting->next;
+    free(forDeleting);
+    printf("Osoba s prezimenom %s je uspjesno obrisana.\n",prezime);
+    return 0;
+
+}
+int freeList(Person* head){
+    Person* temp=head->next;
+    while(temp!=NULL){
+        Person* next=temp->next;
+        free(temp);
+        temp=next;
+    }
+    head->next=NULL;
+    return 0;
+}
+
+/* ======================= NOVO - ZADATAK 3 ======================= */
+
+/* NOVO 3.A - dodaje novi element IZA osobe s prezimenom target */
+int addAfter(Person* head, const char* target, const char* ime, const char* prezime, int godina){
+    Person* temp=findBySurname(head,target);
+    if(temp==NULL){
+        printf("Osoba s prezimenom %s nije pronadena\n",target);
+        return 1;
+    }
+    Person* new=makePerson(ime,prezime,godina);
+    if(!new)return 1;
+    new->next=temp->next;
+    temp->next=new;
+    return 0;
+}
+
+/* NOVO 3.B - dodaje novi element ISPRED osobe s prezimenom target */
+int addBefore(Person* head, const char* target, const char* ime, const char* prezime, int godina){
+    Person* temp=head;   /* trazimo element PRIJE trazenog (isto kao u deleteElement) */
+    while(temp->next!=NULL&&strcmp(temp->next->prezime,target)!=0){
+        temp=temp->next;
+    }
+    if(temp->next==NULL){
+        printf("Osoba s prezimenom %s nije pronadena\n",target);
+        return 1;
+    }
+    Person* new=makePerson(ime,prezime,godina);
+    if(!new)return 1;
+    new->next=temp->next;
+    temp->next=new;
+    return 0;
+}
+
+/* NOVO 3.C - sortira listu po prezimenima (bubble sort, zamjenjuju se cvorovi) */
+int sortBySurname(Person* head){
+    Person* end=NULL;
+    Person* prev;
+    Person* cur;
+    Person* nxt;
+    if(head->next==NULL||head->next->next==NULL)return 0;  
+    while(head->next->next!=end){
+        prev=head;
+        cur=head->next;
+        while(cur->next!=end){
+            nxt=cur->next;
+            if(strcmp(cur->prezime,nxt->prezime)>0){
+                /* zamjena cur i nxt */
+                cur->next=nxt->next;
+                nxt->next=cur;
+                prev->next=nxt;
+                cur=nxt;
+            }
+            prev=cur;
+            cur=cur->next;
+        }
+        end=cur;   
+    return 0;
+}
+}
+
+int writeToFile(Person* head, const char* filename){
+    FILE* fp=fopen(filename,"w");
+    if(!fp){
+        printf("Greska pri otvaranju datoteke %s\n",filename);
+        return 1;
+    }
+    Person* temp=head->next;
+    while(temp!=NULL){
+        fprintf(fp,"%s %s %d\n",temp->ime,temp->prezime,temp->godina);
+        temp=temp->next;
+    }
+    fclose(fp);
+    printf("Lista je upisana u datoteku %s\n",filename);
+    return 0;
+}
+
+/* NOVO 3.E - cita listu iz datoteke (stara lista se prvo brise) */
+int readFromFile(Person* head, const char* filename){
+    FILE* fp=fopen(filename,"r");
+    if(!fp){
+        printf("Greska pri otvaranju datoteke %s\n",filename);
+        return 1;
+    }
+    char ime[50], prezime[50];
+    int godina;
+    freeList(head);
+    while(fscanf(fp,"%49s %49s %d",ime,prezime,&godina)==3){
+        if(addToEnd(head,ime,prezime,godina)!=0){
+            fclose(fp);
+            return 1;
+        }
+    }
+    fclose(fp);
+    printf("Lista je procitana iz datoteke %s\n",filename);
+    return 0;
+}
+
+int main(){
+    Person head={
+        .ime="",
+        .prezime="",
+        .godina=0,
+        .next=NULL
+    };
+    start(&head,"Ivo","Ivic",2000);
+    start(&head,"Ana","Anicic",2002);
+    addToEnd(&head,"Marko","Markic",2004);
+    print(&head);
+    printf("Trazimo sada prezime Anicic:\n");
+    Person* naden=findBySurname(&head,"Anicic");
+    if(naden){
+        printf("Pronaden: %s %s (%d)\n",naden->ime,naden->prezime,naden->godina);
+    }else{
+        printf("Osoba nije pronadena\n");
+    }
+    deleteElement(&head,"Anicic");
+    print(&head);
+    printf("3.A Dodajemo Petra Peric iza Ivic:\n");
+    addAfter(&head,"Ivic","Petra","Peric",2001);
+    print(&head);
+
+    printf("3.B Dodajemo Luka Babic ispred Markic:\n");
+    addBefore(&head,"Markic","Luka","Babic",1999);
+    print(&head);
+
+    printf("3.C Sortiranje po prezimenima:\n");
+    sortBySurname(&head);
+    print(&head);
+
+    printf("3.D Upis u datoteku:\n");
+    writeToFile(&head,"osobe.txt");
+
+    printf("3.E Brisemo listu i citamo je iz datoteke:\n");
+    freeList(&head);
+    print(&head);
+    readFromFile(&head,"osobe.txt");
+    print(&head);
+
+    freeList(&head);
+    return 0;
+}
