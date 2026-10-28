@@ -92,7 +92,7 @@ int freeList(Person* head){
 
 /* ======================= NOVO - ZADATAK 3 ======================= */
 
-/* NOVO 3.A - dodaje novi element IZA osobe s prezimenom target */
+/* NOVO 3.A
 int addAfter(Person* head, const char* target, const char* ime, const char* prezime, int godina){
     Person* temp=findBySurname(head,target);
     if(temp==NULL){
@@ -106,7 +106,7 @@ int addAfter(Person* head, const char* target, const char* ime, const char* prez
     return 0;
 }
 
-/* NOVO 3.B - dodaje novi element ISPRED osobe s prezimenom target */
+/* NOVO 3.B 
 int addBefore(Person* head, const char* target, const char* ime, const char* prezime, int godina){
     Person* temp=head;   /* trazimo element PRIJE trazenog (isto kao u deleteElement) */
     while(temp->next!=NULL&&strcmp(temp->next->prezime,target)!=0){
@@ -123,7 +123,7 @@ int addBefore(Person* head, const char* target, const char* ime, const char* pre
     return 0;
 }
 
-/* NOVO 3.C - sortira listu po prezimenima (bubble sort, zamjenjuju se cvorovi) */
+/* NOVO 3.C
 int sortBySurname(Person* head){
     Person* end=NULL;
     Person* prev;
@@ -166,7 +166,7 @@ int writeToFile(Person* head, const char* filename){
     return 0;
 }
 
-/* NOVO 3.E - cita listu iz datoteke (stara lista se prvo brise) */
+/* NOVO 3.E 
 int readFromFile(Person* head, const char* filename){
     FILE* fp=fopen(filename,"r");
     if(!fp){
