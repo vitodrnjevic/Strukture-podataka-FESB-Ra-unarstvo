@@ -4,7 +4,6 @@
 
 #define MAX_LINE 1024
 
-/* Jedan clan polinoma: koef * x^eksp */
 typedef struct _Term{
     int koef;
     int eksp;
@@ -23,22 +22,18 @@ Term* makeTerm(int koef, int eksp){
     return new;
 }
 
-/* Ubacuje clan SORTIRANO (od najveceg eksponenta prema najmanjem).
-   Ako clan s tim eksponentom vec postoji, koeficijenti se zbroje.
-   Ako zbroj ispadne 0, clan se brise. */
 int insertSorted(Term* head, int koef, int eksp){
-    if(koef==0)return 0;          /* clan s koeficijentom 0 ne treba spremati */
+    if(koef==0)return 0;
 
     Term* temp=head;
-    /* idemo dok je sljedeci eksponent VECI od naseg */
+
     while(temp->next!=NULL&&temp->next->eksp>eksp){
         temp=temp->next;
     }
 
-    /* isti eksponent vec postoji -> zbrajamo koeficijente */
     if(temp->next!=NULL&&temp->next->eksp==eksp){
         temp->next->koef+=koef;
-        if(temp->next->koef==0){   /* npr. 3x^2 + (-3x^2) = 0 -> brisemo clan */
+        if(temp->next->koef==0){
             Term* forDeleting=temp->next;
             temp->next=forDeleting->next;
             free(forDeleting);
@@ -46,7 +41,6 @@ int insertSorted(Term* head, int koef, int eksp){
         return 0;
     }
 
-    /* inace ubacujemo novi clan izmedu temp i temp->next */
     Term* new=makeTerm(koef,eksp);
     if(!new)return 1;
     new->next=temp->next;
@@ -54,11 +48,10 @@ int insertSorted(Term* head, int koef, int eksp){
     return 0;
 }
 
-/* Cita jedan redak oblika "koef eksp koef eksp ..." i radi polinom */
 int parseLine(Term* head, const char* line){
     int koef, eksp, n;
     const char* p=line;
-    /* %n sprema koliko je znakova procitano, pa se pomicemo dalje kroz redak */
+
     while(sscanf(p,"%d %d %n",&koef,&eksp,&n)==2){
         if(insertSorted(head,koef,eksp)!=0)return 1;
         p+=n;
@@ -66,7 +59,6 @@ int parseLine(Term* head, const char* line){
     return 0;
 }
 
-/* Cita dva polinoma iz datoteke: prvi redak = P1, drugi redak = P2 */
 int readFromFile(Term* p1, Term* p2, const char* filename){
     FILE* fp=fopen(filename,"r");
     if(!fp){
@@ -93,7 +85,6 @@ int readFromFile(Term* p1, Term* p2, const char* filename){
     return 0;
 }
 
-/* Ispis u obliku: 5x^4 - 3x^2 + 2x + 7 */
 int print(const char* naziv, Term* head){
     Term* temp=head->next;
     printf("%s = ",naziv);
@@ -104,7 +95,7 @@ int print(const char* naziv, Term* head){
     int prvi=1;
     while(temp!=NULL){
         int k=temp->koef;
-        /* predznak */
+
         if(prvi){
             if(k<0)printf("-");
         }else{
@@ -112,10 +103,8 @@ int print(const char* naziv, Term* head){
         }
         if(k<0)k=-k;
 
-        /* koeficijent (1 se ne pise, osim kod konstante) */
         if(k!=1||temp->eksp==0)printf("%d",k);
 
-        /* x i eksponent */
         if(temp->eksp==1)printf("x");
         else if(temp->eksp!=0)printf("x^%d",temp->eksp);
 
@@ -126,8 +115,6 @@ int print(const char* naziv, Term* head){
     return 0;
 }
 
-/* Zbrajanje: sve clanove iz P1 i P2 ubacimo u rezultat,
-   insertSorted sam zbroji clanove s istim eksponentom */
 int addPoly(Term* p1, Term* p2, Term* result){
     Term* temp;
     for(temp=p1->next;temp!=NULL;temp=temp->next){
@@ -139,8 +126,6 @@ int addPoly(Term* p1, Term* p2, Term* result){
     return 0;
 }
 
-/* Mnozenje: svaki clan iz P1 pomnozimo sa svakim clanom iz P2
-   (koeficijenti se mnoze, eksponenti zbrajaju) */
 int multiplyPoly(Term* p1, Term* p2, Term* result){
     Term* a;
     Term* b;
